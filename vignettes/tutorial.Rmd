@@ -8,13 +8,95 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE, build_vignette = TRUE, build_opts = c()}
+```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
 ```
 
+# PROJECT 2: R PACKAGE DEVELOPMENT
+
+## INTRODUCTION 
+
+This package is meant to serve as my submission for Project 2 of STAT302
+at the University of Washington. The package includes functions replicating 
+the internal function of R's t test, lm, randomForest, and knn functions. 
+This package can be installed from github 
+[here](https://github.com/mayachen19/stat302package). Underneath I have
+included commands in R to install this package in R from github and 
+to call this package. 
+
 ```{r setup}
+remotes::install_github("https://github.com/mayachen19/stat302package")
 library(stat302package)
 ```
+
+### my_t_test
+
+#### Two Sided 
+```{r}
+# extract lifeExp column from my_gapminder
+data_one <- my_gapminder$lifeExp
+# call my_t_test function
+my_t_test(data_one, "two.sided", 60)
+```
+
+Assuming the null hypothesis is true, the probability of observing a result 
+as or more extreme than what was observed is 9.32%. Therefore, I fail to reject 
+the null hypothesis: mu is equal to 60. 
+
+#### Less Than
+```{r}
+my_t_test(data_one, "less", 60)
+```
+
+Assuming the null hypothesis is true, the probability of observing a result 
+as or more extreme than what was observed is 4.66%. I therefore reject the null 
+hypothesis; mu is not equal to 60, mu is less than 60. 
+
+#### Greater Than
+```{r}
+# call my_t_test function
+my_t_test(data_one, "greater", 60)
+```
+
+Assuming the null hypothesis is true, the probability of observing a result 
+as or more extreme than what was observed is 95.3%. I therefore fail to reject 
+the null hypothesis: mu is equal to 60. 
+
+### my_lm
+
+With all other covariates remaining equal, the change in life 
+expectancy corresponding to one unit change in gdpPercap is 4.42 x 10 ^ -4.
+The null hypothesis for the gdpPercap coefficient is that the gdpPercap 
+coefficient is 0. The alternative hypothesis is that the gpdPercap coefficient 
+is not 0. Given a p value of 8.55 x 10 ^ -73 and a cut off of p = 0.05, 
+I reject the null hypothesis and support the alternative hypothesis that the
+gdpPercap coefficient is not 0. 
+
+```{r fig.height = 5, fig.width = 10}
+# store lifeExp lm model in my_model
+my_model <- lm(lifeExp ~ gdpPercap + continent, my_gapminder)
+# getting fitted values 
+model_fitted <- fitted(my_model)
+# stores actual data and fitted data in data frame
+my_df <- data.frame(actual = my_gapminder$lifeExp, fitted = model_fitted)
+# creates g_gapminder actual vs fitted data graph
+g_gapminder <- ggplot2::ggplot(data = my_df, 
+                               ggplot2::aes(x = fitted, y = actual)) +
+                ggplot2::geom_point() +
+                ggplot2::geom_abline(slope = 1, intercept = 0, 
+                                    col = "red", lty = 2) +
+                ggplot2::theme_bw(base_size = 20) +
+                ggplot2::labs(x = "Fitted Values", y = "Actual Values", 
+                              title = "Actual vs Fitted Values") +
+                ggplot2::scale_x_continuous()
+                
+# display g_gapminder object
+g_gapminder
+```
+
+  This plot tells that the model works well for life expectancies around 
+  70-80, but varies widely from the actual values from the ages of 50 to 65. The 
+  model does not predict life expectancies from age 0 to about 50. 
