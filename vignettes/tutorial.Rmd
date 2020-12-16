@@ -1,6 +1,7 @@
 ---
 title: "Project 2: stat302package Tutorial"
 author: "Maya Chen"
+colloborater: "Sid Gurajala"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{stat302package Tutorial}
