@@ -1,0 +1,15 @@
+Package: stat302package
+Title: STAT302 package for UW
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Maya",
+           family = "Chen",
+           role = c("aut", "cre"),
+           email = "mchen19@uw.edu",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: This package builds a package for STAT302 at UW.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
