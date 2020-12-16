@@ -28,7 +28,7 @@ included commands in R to install this package in R from github and
 to call this package. 
 
 ```{r setup}
-remotes::install_github("https://github.com/mayachen19/stat302package")
+# remotes::install_github("https://github.com/mayachen19/stat302package")
 library(stat302package)
 ```
 
@@ -78,9 +78,9 @@ gdpPercap coefficient is not 0.
 ```{r fig.height = 5, fig.width = 10}
 # store lifeExp lm model in my_model
 my_model <- lm(lifeExp ~ gdpPercap + continent, my_gapminder)
-# getting fitted values 
+# get fitted values 
 model_fitted <- fitted(my_model)
-# stores actual data and fitted data in data frame
+# store actual data and fitted data in data frame
 my_df <- data.frame(actual = my_gapminder$lifeExp, fitted = model_fitted)
 # creates g_gapminder actual vs fitted data graph
 g_gapminder <- ggplot2::ggplot(data = my_df, 
@@ -100,3 +100,94 @@ g_gapminder
   This plot tells that the model works well for life expectancies around 
   70-80, but varies widely from the actual values from the ages of 50 to 65. The 
   model does not predict life expectancies from age 0 to about 50. 
+
+### my_knn_cv
+```{r}
+# set up penguins data set
+my_df <- my_penguins
+my_df <- my_df %>%
+          dplyr::select(c(species, bill_length_mm, bill_depth_mm,
+                          flipper_length_mm, body_mass_g))
+my_df$species <- as.character(my_df$species)
+my_df <- na.omit(my_df)
+my_df_class <- my_df %>% dplyr::pull(species)
+# call my_knn_cv
+cv_error_rates <- vector()
+tse_rates <- vector()
+for (i in 1:10) {
+  output <- my_knn_cv(train = my_df, cl = "species", k_nn = i, k_cv = 5)
+  cv_error_rates[i] <- output[[1]]
+  tse_rates[i] <- sum(as.character(output[[2]]) != my_df_class) / 
+                  length(my_df_class)
+}
+# stores cv error rates and tse rates in df
+data_statistics <- data.frame(cv_error_rates = cv_error_rates,
+                              tse_rates = tse_rates)
+# output df 
+data_statistics
+```
+
+Based on purely training misclassification rates, I would pick k_nn = 1 which 
+had a tse_rate (training set error rate) of 0.00000. CV error rates, 
+the rate at which the algorithm incorrectly predicts the value of the fifth fold
+of a data set -- the first four folds of which are used as training data -- 
+tell a similar story. Based on cv error rates I would also pick k_nn = 1. 
+In practice I would probably pick k_nn = 5, as that
+would give the algorithm with more explanatory power and would generally 
+be more reliable than using one nearest neighbor. This is because looking at 
+5 nearest neighbors would allow the algorithm to better classify the 
+class of the predicted variable. 
+
+### my_rf_cv
+```{r fig.height = 5, fig.width = 10}
+# for loop filling mse_vector 2 with 30 k - 2 simulations
+mse_vector_two <- vector()
+for (i in 1:30) {
+  mse_vector_two[i] <- my_rf_cv(2)
+}
+# for loop filling mse_vector_five with 30 k = 5 simulations
+mse_vector_five <- vector()
+for (i in 1:30) {
+  mse_vector_five[i] <- my_rf_cv(5)
+}
+#for loop filling mse_vector_ten with 30 k = 10 simulations
+mse_vector_ten <- vector()
+for (i in 1:30) {
+  mse_vector_ten[i] <- my_rf_cv(10)
+}
+#creating DF of k value and MSE value for each k condition
+mse_two_df <- data.frame(MSE = mse_vector_two) %>% 
+               dplyr::mutate(k = "k = 2")
+mse_five_df <- data.frame(MSE = mse_vector_five) %>% 
+                dplyr::mutate(k = "k = 5")
+mse_ten_df <- data.frame(MSE = mse_vector_ten) %>% 
+               dplyr::mutate(k = "k = 10")
+#putting all data frames together
+mse_df <- rbind(mse_two_df, mse_five_df, mse_ten_df)
+#code for plot 
+g_rf_cv <- ggplot2::ggplot(data = mse_df) + 
+            ggplot2::geom_boxplot(ggplot2::aes(x = k, y = MSE, fill = k)) +
+            ggplot2::labs(x = "Number of folds", y = "Mean Squared Error",
+                          title = "MSE for 30 randomForests 
+                          with 2, 5, and 10 folds") +
+            ggplot2::theme_bw()
+g_rf_cv
+#creating vector of k values
+kvalues <- c(2, 5, 10)
+#calculating means
+means <- c(mean(mse_vector_two), mean(mse_vector_five), mean(mse_vector_ten))
+#calculating standard deviations 
+sds <- c(sd(mse_vector_two), sd(mse_vector_five), sd(mse_vector_ten))
+#creating mse_table
+mse_table <- data.frame("K Value" = kvalues,
+                        "Mean MSE" = means,
+                        "SD" = sds)
+#display table
+mse_table
+```
+
+The mean MSE is lower for k = 10 folds than for k = 2 or k = 5 folds. k = 2 
+folds has the highest mean MSE value. k = 10 folds also has the lowest 
+standard deviation of all folds, and k = 2 folds has the highest. This makes
+sense given that a higher number of folds leads to higher accuracy and therefore
+less mean squared error. 
